@@ -130,17 +130,6 @@ if (!class_exists('attach')) {
         public function GetScriptPath()
         {
             return $this->wiki->getBaseUrl().'/';
-            // if (preg_match("/.(php)$/i", $_SERVER["PHP_SELF"])) {
-            //     $a = explode('/', $_SERVER["PHP_SELF"]);
-            //     $a[count($a) - 1] = '';
-            //     $path = implode('/', $a);
-            // } else {
-            //     $path = $_SERVER["PHP_SELF"];
-            // }
-            // $http = (isset($_SERVER['HTTPS']) ? 'https://' : 'http://');
-            // return !empty($_SERVER["HTTP_HOST"]) ?
-            //     $http . $_SERVER["HTTP_HOST"] . $path
-            //     : $http . $_SERVER["SERVER_NAME"] . $path;
         }
         /**
          * Calcul le repertoire d'upload en fonction du safe_mode
@@ -155,7 +144,11 @@ if (!class_exists('attach')) {
                     $this->mkdir_recursif($path);
                 }
             }
-            return $path;
+            if (!empty($this->wiki->config['dataPath'])) {
+                return  $this->wiki->config['dataPath'].'/'.$path;
+            } else {
+                return $path;
+            }
         }
         /**
          * Calcul le repertoire de cache en fonction du safe_mode
@@ -170,7 +163,11 @@ if (!class_exists('attach')) {
                     $this->mkdir_recursif($path);
                 }
             }
-            return $path;
+            if (!empty($this->wiki->config['dataPath'])) {
+                return  $this->wiki->config['dataPath'].'/'.$path;
+            } else {
+                return $path;
+            }
         }
         /**
          * Calcule le nom complet du fichier attach&eacute; en fonction du safe_mode, du nom et de la date de
@@ -186,7 +183,7 @@ if (!class_exists('attach')) {
          */
         public function GetFullFilename($newName = false)
         {
-             // use current date if page has no date that could arrive when using page 'root' via Actions Builder
+            // use current date if page has no date that could arrive when using page 'root' via Actions Builder
             $pagedate = $this->convertDate(
                 isset($this->wiki->page['time'])
                 ? $this->wiki->page['time']
@@ -194,7 +191,8 @@ if (!class_exists('attach')) {
                     $this->wiki->tag == "root"
                     ? date('Y-m-d H:i:s')
                     : null // error
-                ));
+                )
+            );
             //decompose le nom du fichier en nom+extension ou en page/nom+extension
             if (preg_match('`^((.+)/)?(.*)\.(.*)$`', str_replace(' ', '_', $this->file), $match)) {
                 list(, , $file['page'], $file['name'], $file['ext']) = $match;
@@ -487,6 +485,7 @@ if (!class_exists('attach')) {
                 } else {
                     $img_name = $fullFilename;
                 }
+
                 list($width, $height, $type, $attr) = getimagesize($img_name);
             } else {
                 // valeurs par défaut pour le svg
@@ -494,6 +493,8 @@ if (!class_exists('attach')) {
                 $height = $this->height;
                 $img_name = $fullFilename;
             }
+            $imgUrl = $this->GetScriptPath() . str_replace($this->wiki->getLocalPath(), '', $img_name);
+
             // pour l'image avec bordure on enleve la taille de la bordure!
             if (strstr($this->classes, 'whiteborder')) {
                 $width = $width - 20;
@@ -501,10 +502,10 @@ if (!class_exists('attach')) {
             }
 
             //c'est une image : balise <IMG..../>
-            $img = "<img class=\"img-responsive\" src=\"" . $this->GetScriptPath() . $img_name . "\" " .
+            $img = "<img class=\"img-responsive\" src=\"" . $imgUrl . "\" " .
             "alt=\"" . $this->desc . ($this->link ? "\nLien vers: $this->link" : "") . "\" width=\"" . $width . "\" height=\"" . $height . "\" />";
             //test si c'est une image sensible
-            $classDataForLinks = 
+            $classDataForLinks =
                 strstr($this->classes, 'new-window')
                 ? ' class="new-window"'
                 : (
@@ -1063,7 +1064,7 @@ if (!class_exists('attach')) {
                 }
             } else {
                 $pathInfo = pathinfo($fullFilename);
-                $file_vignette = "{$file['path']}/{$pathInfo['filename']}_vignette_{$width}_{$height}".(isset($pathInfo['extension']) ? ".{$pathInfo['extension']}": '');
+                $file_vignette = "{$file['path']}/{$pathInfo['filename']}_vignette_{$width}_{$height}".(isset($pathInfo['extension']) ? ".{$pathInfo['extension']}" : '');
             }
 
             return $file_vignette;
@@ -1073,7 +1074,7 @@ if (!class_exists('attach')) {
         {
             $uploadPath = $this->GetUploadPath();
             $cachePath = $this->GetCachePath();
-            $newFileName = preg_replace("/^$uploadPath/", "$cachePath", $fullFilename);
+            $newFileName = preg_replace("~^$uploadPath~", "$cachePath", $fullFilename);
             $newFileName = $this->calculer_nom_fichier_vignette($newFileName, $width, $height);
             if ($mode == "crop") {
                 $newFileName = preg_replace("/_vignette_/", "_cropped_", $newFileName);

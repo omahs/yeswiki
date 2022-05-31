@@ -50,6 +50,7 @@ class Wiki
     public $method;
     public $page;
     public $tag;
+    public $configFile;
     public $parameter = array();
     public $request;
     // current output used for actions/handlers/formatters
@@ -81,6 +82,7 @@ class Wiki
     {
         $init = new \YesWiki\Init($config);
         $this->config = $init->config;
+        $this->configFile = $init->configFile;
         $this->CookiePath = $init->initCookies();
         $this->tag = $init->page;
         $this->method = $init->method;

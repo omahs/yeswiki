@@ -1,4 +1,5 @@
 <?php
+
 use YesWiki\Security\Controller\SecurityController;
 use YesWiki\Core\Service\ConfigurationService;
 
@@ -8,14 +9,14 @@ if (!defined("WIKINI_VERSION")) {
 
 require_once 'tools/templates/libs/setwikidefaulttheme.functions.php';
 
-if (!is_writable('wakka.config.php')) {
+if (!is_writable($this->configFile)) {
     echo '<div class="alert alert-danger">'
         . _t('ERROR_NO_ACCESS')
         . " setwikidefaulttheme, "._t('FILE_WRITE_PROTECTED')."</div>\n";
 } else {
     if ($this->UserIsAdmin()) {
         $themes = getTemplatesList();
-        $config = $this->services->get(ConfigurationService::class)->getConfiguration('wakka.config.php');
+        $config = $this->services->get(ConfigurationService::class)->getConfiguration($this->configFile);
         $config->load();
 
         if (isset($_POST['action']) and $_POST['action'] === 'setTemplate') {

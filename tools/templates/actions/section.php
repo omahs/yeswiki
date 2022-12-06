@@ -139,7 +139,7 @@ if ($GLOBALS['check_' . $pagetag]['section']) {
         .(!empty($bgcolor) ? 'background-color:' . $bgcolor .'; ' : '')
         .(!empty($height) ? 'height:' . $height . 'px; ' : '')
         .(!empty($pattern) ? $pattern : '')
-        .(isset($fullFilename) ? 'background-image:url(' . $fullFilename . ');' : '').'"'
+        .(isset($fullFilename) ? 'background-image:url(' . $att->getFileUrl($fullFilename) . ');' : '').'"'
     ;
     if (is_array($data)) {
         foreach ($data as $key => $value) {
